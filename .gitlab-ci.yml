@@ -1,0 +1,143 @@
+stages:
+  - prepare
+  - tests-and-lints
+  - build-dev
+  - deploy-test
+
+
+services:
+  - postgres:14-alpine
+
+
+variables:
+  POSTGRES_DB: test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST_AUTH_METHOD: trust
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  POETRY_CACHE_DIR: "$CI_PROJECT_DIR/.poetry_cache"
+
+
+.cache: &cache_base
+  key: main-cache
+  paths:
+    - .cache/pip
+    - .poetry_cache
+
+
+.tests-stage: &tests_stage
+  stage: tests-and-lints
+  image: python:3.11-slim-buster
+  before_script:
+    - pip install "poetry==1.4.2"
+
+
+Prepare:
+  stage: prepare
+  image: python:3.11-slim-buster
+  cache:
+    <<: *cache_base
+  before_script:
+    - apt-get update -y && apt-get install -y git gcc g++ build-essential
+  script:
+    - pip install "poetry==1.4.2"
+    - poetry install
+
+
+Test:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  variables:
+    DB_HOST: 'postgres'
+    DB_USER: 'postgres'
+    DB_PASSWORD: 'postgres'
+    DB_NAME: 'postgres'
+    SECRET_KEY: 'test'
+    DB_PORT: 5432
+  script:
+    - poetry run task tests
+
+
+Lint:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  script:
+    - poetry run task isort-lint
+
+
+Black:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  script:
+    - poetry run task black-lint
+
+
+Pip check:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  script:
+    - poetry run task pip-check
+
+
+Poetry check:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  script:
+    - poetry run task poetry-check
+
+
+Mypy:
+  <<: *tests_stage
+  cache:
+    <<: *cache_base
+    policy: pull
+  script:
+    - poetry run task mypy-lint
+
+
+Build docker:
+  stage: build-dev
+  image: docker:20.10-dind
+  needs:
+    - job: Test
+    - job: Black
+    - job: Poetry check
+    - job: Pip check
+    - job: Lint
+    - job: Mypy
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: docker:20.10-dind
+      command: ["--tls=false"]
+    - name: bitnami/git
+      alias: git
+  script:
+    - apk add make git
+    - make build
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^master/'
+
+
+Deploy to test:
+  stage: deploy-test
+  needs:
+    - job: Test
+    - job: Build docker
+  script:
+    - echo "Deploy to test"
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^master/'
+  when: manual

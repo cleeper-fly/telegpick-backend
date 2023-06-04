@@ -1,0 +1,142 @@
+[tool.poetry]
+name = "tgpk-app"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = {extras = ["uvicorn"], version = "^0.89.1"}
+orjson = "^3.8.5"
+gunicorn = "^20.1.0"
+tenacity = "^8.1.0"
+environs = "^9.5.0"
+redis = "^4.4.2"
+pydantic = "^1.10.4"
+uvicorn = "^0.20.0"
+alembic = "^1.9.2"
+psycopg = {extras = ["binary"], version = "^3.1.8"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+SQLAlchemy = {extras = ["asyncio"], version = "^2.0.0"}
+asyncpg = "^0.27.0"
+psycopg2-binary = "^2.9.5"
+python-multipart = "^0.0.5"
+aiohttp = "^3.8.4"
+telethon = "^1.28.2"
+celery = "^5.2.7"
+rabbitmq = "^0.2.0"
+flower = "^1.2.0"
+kombu = "^5.2.4"
+asgiref = "^3.6.0"
+tornado = "^6.3.1"
+aiocron = "^1.8"
+
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.11.4"
+pytest-mock = "^3.10.0"
+black = "^22.12.0"
+mypy = "^0.991"
+pytest-asyncio = "^0.20.3"
+taskipy = "^1.10.3"
+coverage = "^7.1.0"
+pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
+pytest-socket = "^0.5.1"
+httpx = "^0.23.3"
+
+
+[tool.taskipy.tasks]
+isort = "isort app tests"
+tests = "pytest tests/ -v"
+black = "black app/ tests/"
+
+isort-lint = "task isort -c"
+black-lint = "task black --check"
+mypy-lint = "mypy --install-types --non-interactive app/"
+poetry-check = "poetry check"
+pip-check = "pip check"
+
+[tool.isort]
+# isort configuration:
+# https://github.com/timothycrosley/isort/wiki/isort-Settings
+include_trailing_comma = true
+use_parentheses = true
+# See https://github.com/timothycrosley/isort#multi-line-output-modes
+multi_line_output = 3
+line_length = 120
+known_first_party = "app"
+default_section = "THIRDPARTY"
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+extend-exclude = '''
+(
+  /(
+    # Exclude folders
+    | app/migrations
+  )/
+  # Eclude files
+)
+'''
+skip-string-normalization = true
+
+
+[tool.mypy]
+# Mypy configuration:
+# https://mypy.readthedocs.io/en/latest/config_file.html
+allow_redefinition = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+disallow_any_generics = false
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = true
+local_partial_types = true
+strict_optional = true
+strict_equality = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unreachable = true
+warn_no_return = false
+pretty = true
+follow_imports = "silent"
+follow_imports_for_stubs = true
+show_error_codes = true
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+exclude = [
+    'test_',
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "html.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "docker.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "app.migrations.*"
+ignore_errors = true
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
