@@ -12,8 +12,9 @@ class TelegramException(Exception):
 class TelegramConnector:
     def __init__(self, user: Users) -> None:
         from app.core.init_app import settings
+
         self.user = user
-        self.api_id = int(settings.TELEGRAM_API_ID)
+        self.api_id = settings.TELEGRAM_API_ID
         self.api_hash = settings.TELEGRAM_API_HASH
         self.pic_directory = settings.PICS_DIRECTORY
         self.sessions_directory = settings.SESSIONS_DIRECTORY
@@ -24,9 +25,7 @@ class TelegramConnector:
         client = TelegramClient(f'{self.sessions_directory}/{self.session}', self.api_id, self.api_hash)
         try:
             await client.connect()
-            print(await client.is_user_authorized())
             if not await client.is_user_authorized():
-                print('here')
                 code_request = await client.send_code_request(self.phone)
                 await UpdatePhoneHashUseCase(self.user, code_request.phone_code_hash).execute()
 

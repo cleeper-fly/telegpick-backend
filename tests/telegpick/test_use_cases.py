@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from unittest import mock
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 import pytest
@@ -10,7 +10,6 @@ from pytest_mock import MockerFixture
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-import app.apps.telegpick.connectors.telegram
 from app.apps.telegpick.dtos import PicsDTO, SchedulesDTO
 from app.apps.telegpick.models import Pics, Schedules
 from app.apps.telegpick.use_cases import (
@@ -23,7 +22,8 @@ from app.apps.telegpick.use_cases import (
     PatchPicForUserUseCase,
     PatchScheduleForPicUseCase,
     ProcessPicsTaskUseCase,
-    BasePicWithUserUseCase, UploadPicOnDiskUseCase, UserSendVerificationUseCase,
+    UploadPicOnDiskUseCase,
+    UserSendVerificationUseCase,
 )
 from app.apps.users.models import Users
 from app.core.db_config import AsyncSessionMaker
@@ -48,7 +48,7 @@ async def user() -> Users:
 
 
 @pytest.mark.asyncio
-async def test_fetch_pic_use_case_execute_with_existing_user():
+async def test_fetch_pic_use_case_execute_with_existing_user() -> None:
     async with session_maker() as session:
         user = Users(username='test_user', hashed_pass='hashed_pass', phone='123')
         session.add(user)
@@ -73,7 +73,7 @@ async def test_fetch_pic_use_case_execute_with_existing_user():
 
 
 @pytest.mark.asyncio
-async def test_fetch_pic_use_case_execute_with_user_without_pics(user):
+async def test_fetch_pic_use_case_execute_with_user_without_pics(user: Users) -> None:
     use_case = FetchPicsForUserUseCase(user, 1, 10)
     result = await use_case.execute()
     assert isinstance(result, list)
@@ -81,7 +81,7 @@ async def test_fetch_pic_use_case_execute_with_user_without_pics(user):
 
 
 @pytest.mark.asyncio
-async def test_create_pic_use_case_execute(user, pic):
+async def test_create_pic_use_case_execute(user: Users, pic: PicsDTO) -> None:
     use_case = CreatePicForUserUseCase(pic, user)
     created_pic = await use_case.execute()
 
@@ -115,7 +115,7 @@ async def test_patch_pic_use_case_execute(user: Users) -> None:
 
 
 @pytest.mark.asyncio
-async def test_delete_pic_use_case_execute_with_existing_pic(user):
+async def test_delete_pic_use_case_execute_with_existing_pic(user: Users) -> None:
     pic = Pics(id=UUID('11111111-1111-1111-1111-111111111111'), user_id=user.id, filename='pic1.jpg')
     async with session_maker() as session:
         session.add(user)
@@ -130,7 +130,7 @@ async def test_delete_pic_use_case_execute_with_existing_pic(user):
 
 
 @pytest.mark.asyncio
-async def test_create_schedule_use_case_execute(user):
+async def test_create_schedule_use_case_execute(user: Users) -> None:
     schedule_data = {
         'days_of_week': '0010000',
         'day_time': '09:00:00',
@@ -153,7 +153,7 @@ async def test_create_schedule_use_case_execute(user):
 
 
 @pytest.mark.asyncio
-async def test_patch_schedule_use_case_execute(user):
+async def test_patch_schedule_use_case_execute(user: Users) -> None:
     async with session_maker() as session:
         pic_id = '123e4567-e89b-12d3-a456-426655440000'
         existing_pic = Pics(id=UUID('123e4567-e89b-12d3-a456-426655440000'), user_id=str(user.id), filename='pic.jpg')
@@ -181,7 +181,7 @@ async def test_patch_schedule_use_case_execute(user):
 
 
 @pytest.mark.asyncio
-async def test_delete_schedule_use_case_execute(user):
+async def test_delete_schedule_use_case_execute(user: Users) -> None:
     async with session_maker() as session:
         pic_id = '123e4567-e89b-12d3-a456-426655440000'
         existing_pic = Pics(id=UUID('123e4567-e89b-12d3-a456-426655440000'), user_id=str(user.id), filename='pic.jpg')
@@ -203,7 +203,7 @@ async def test_delete_schedule_use_case_execute(user):
 
 
 @pytest.mark.asyncio
-async def test_process_pics_task_use_case(user) -> None:
+async def test_process_pics_task_use_case(user: Users) -> None:
     pic_mock = MagicMock(filename='123')
     user_mock = MagicMock()
 
@@ -252,12 +252,8 @@ async def test_get_pic_fails_if_no_pic(user: Users) -> None:
 async def test_pic_upload_failed(user: Users, mocker: MockerFixture) -> None:
     test_file = 'test_file.docx'
     use_case = UploadPicOnDiskUseCase(
-        user=user,
-        filename=test_file,
-        file=UploadFile(filename=test_file, file=MagicMock()),
-        timezone='+1'
+        user=user, filename=test_file, file=UploadFile(filename=test_file, file=MagicMock()), timezone='+1'
     )
-
     with pytest.raises(BadRequestException) as e:
         await use_case.execute()
     assert 'There was an error uploading the file' in str(e.value.detail)
@@ -271,10 +267,7 @@ async def test_pic_upload_faile(user: Users, mocker: MockerFixture) -> None:
     patched = mocker.patch('app.apps.telegpick.use_cases.CreatePicForUserUseCase.execute')
     test_file = 'test_file.docx'
     use_case = UploadPicOnDiskUseCase(
-        user=user,
-        filename=test_file,
-        file=UploadFile(filename=test_file, file=open_mock),
-        timezone='+1'
+        user=user, filename=test_file, file=UploadFile(filename=test_file, file=open_mock), timezone='+1'
     )
     await use_case.execute()
     patched.assert_called_once()

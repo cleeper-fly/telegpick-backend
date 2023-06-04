@@ -12,7 +12,7 @@ from app.lib.classes import BadRequestException
 
 
 @pytest.mark.asyncio
-async def test_register_user_use_case_creates_user_and_raises_error_if_its_exists():
+async def test_register_user_use_case_creates_user_and_raises_error_if_its_exists() -> None:
     registration_data = RegistrationData(username='test_user', password='password', phone='123')
     user = await RegisterUserUseCase(registration_data).execute()
     assert isinstance(user, Users)
@@ -24,7 +24,7 @@ async def test_register_user_use_case_creates_user_and_raises_error_if_its_exist
 
 
 @pytest.mark.asyncio
-async def test_authenticate_user_use_case_success(mocker: MockerFixture):
+async def test_authenticate_user_use_case_success(mocker: MockerFixture) -> None:
     """Test success scenario of authenticate user use case"""
     await RegisterUserUseCase(RegistrationData(username='test_user', password='password', phone='123')).execute()
 
@@ -42,7 +42,7 @@ async def test_authenticate_user_use_case_success(mocker: MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_authenticate_user_use_case_user_not_found(mocker: MockerFixture):
+async def test_authenticate_user_use_case_user_not_found(mocker: MockerFixture) -> None:
     """Test scenario when user not found"""
 
     async def _executable(*args, **kwargs):
@@ -59,7 +59,7 @@ async def test_authenticate_user_use_case_user_not_found(mocker: MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_authenticate_user_use_case_wrong_password(mocker: MockerFixture):
+async def test_authenticate_user_use_case_wrong_password(mocker: MockerFixture) -> None:
     """Test scenario when user provides wrong password"""
     await RegisterUserUseCase(RegistrationData(username='test_user', password='password', phone='123')).execute()
 
@@ -80,7 +80,7 @@ async def test_authenticate_user_use_case_wrong_password(mocker: MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_get_user_from_token_use_case_success(mocker):
+async def test_get_user_from_token_use_case_success(mocker) -> None:
     user = await RegisterUserUseCase(RegistrationData(username='test_user', password='password', phone='123')).execute()
     mock_payload = mocker.Mock(return_value={'sub': 'test_user'})
     mocker.patch('jose.jwt.decode', mock_payload)
@@ -92,7 +92,7 @@ async def test_get_user_from_token_use_case_success(mocker):
 
 
 @pytest.mark.asyncio
-async def test_get_user_from_token_use_case_failure_jwt_error(mocker):
+async def test_get_user_from_token_use_case_failure_jwt_error(mocker) -> None:
     mocker.patch('jose.jwt.decode', side_effect=JWTError)
 
     use_case = GetUserFromTokenUseCase(token='token')
@@ -105,7 +105,7 @@ async def test_get_user_from_token_use_case_failure_jwt_error(mocker):
 
 
 @pytest.mark.asyncio
-async def test_get_user_from_token_use_case_failure_decoded_with_no_username(mocker):
+async def test_get_user_from_token_use_case_failure_decoded_with_no_username(mocker) -> None:
     mocker.patch('jose.jwt.decode', return_value={})
 
     use_case = GetUserFromTokenUseCase(token='token')
@@ -118,7 +118,7 @@ async def test_get_user_from_token_use_case_failure_decoded_with_no_username(moc
 
 
 @pytest.mark.asyncio
-async def test_get_user_from_token_use_case_user_not_found(mocker):
+async def test_get_user_from_token_use_case_user_not_found(mocker) -> None:
     mock_payload = mocker.Mock(return_value={'sub': 'user_test'})
     mocker.patch('jose.jwt.decode', mock_payload)
 

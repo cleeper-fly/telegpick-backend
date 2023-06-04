@@ -8,7 +8,7 @@ from app.lib.utils import pwd_context
 
 
 @pytest.mark.asyncio
-async def test_users_verify_password_returns_true_for_correct_pass():
+async def test_users_verify_password_returns_true_for_correct_pass() -> None:
     test_pass = pwd_context.hash('password')
 
     user = Users()
@@ -19,7 +19,7 @@ async def test_users_verify_password_returns_true_for_correct_pass():
 
 
 @pytest.mark.asyncio
-async def test_users_verify_password_returns_false_for_incorrect_pass():
+async def test_users_verify_password_returns_false_for_incorrect_pass() -> None:
     test_pass = pwd_context.hash('password_test')
 
     user = Users()
@@ -30,7 +30,7 @@ async def test_users_verify_password_returns_false_for_incorrect_pass():
 
 
 @pytest.mark.asyncio
-async def test_users_has_password_sets_value_to_model(mocker: MockerFixture):
+async def test_users_has_password_sets_value_to_model(mocker: MockerFixture) -> None:
     mocker.patch.object(CryptContext, 'hash', return_value='hashed_password')
 
     user = Users()

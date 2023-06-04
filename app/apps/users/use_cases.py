@@ -75,7 +75,7 @@ class AuthenticateUserUseCase(SQLAlchemySessionBaseUseCase):
                 headers={'WWW-Authenticate': 'Bearer'},
             )
 
-        token = await self._create_access_token(data={'sub': user.username}) # type: ignore
+        token = await self._create_access_token(data={'sub': user.username})  # type: ignore
         response = Response(content='Authentication successful')
         response.set_cookie(key='access_token', value=token, httponly=True)
         return response

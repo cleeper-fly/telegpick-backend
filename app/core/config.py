@@ -47,7 +47,7 @@ class AppSettings(BaseSettings):
     DB_PORT: int
 
     # telegram
-    TELEGRAM_API_ID: str = 'test'
+    TELEGRAM_API_ID: int = 123123
     TELEGRAM_API_HASH: str = 'test'
     PICS_DIRECTORY: str = '/pics'
     SESSIONS_DIRECTORY: str = '/opt/sessions'

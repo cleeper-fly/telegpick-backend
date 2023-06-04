@@ -186,7 +186,7 @@ class ProcessPicsTaskUseCase(SQLAlchemySessionBaseUseCase):
 
     async def _pic_for_change(self, schedule: Schedules, pic: Pics) -> bool:
         offset_match = re.match(r'^([+-])(\d{2}):(\d{2})$', pic.timezone)
-        sign, hours, minutes = offset_match.groups() # type: ignore
+        sign, hours, minutes = offset_match.groups()  # type: ignore
         offset = datetime.timedelta(hours=int(hours), minutes=int(minutes))
         if sign == '-':
             offset = -offset

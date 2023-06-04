@@ -1,5 +1,5 @@
 import pytest
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, Response, status
 from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 
@@ -11,7 +11,11 @@ from app.apps.users.use_cases import AuthenticateUserUseCase, RegisterUserUseCas
 async def test_register_user(client: TestClient, mocker: MockerFixture):
     mocker.patch("app.apps.telegpick.use_cases.UserSendVerificationUseCase.execute")
     registration_data = {
-        'id': 'b5fc0ced-c3b8-4124-aa6b-8179c75dfe57', 'email': 'test@test.com', 'username': 'test_user', 'password': 'test_password', 'phone': '123'
+        'id': 'b5fc0ced-c3b8-4124-aa6b-8179c75dfe57',
+        'email': 'test@test.com',
+        'username': 'test_user',
+        'password': 'test_password',
+        'phone': '123',
     }
     user_orm = mocker.MagicMock(**registration_data)
     user_dto = UserDTO.from_orm(user_orm)
@@ -32,7 +36,7 @@ async def test_login_user(client: TestClient, mocker: MockerFixture):
     }
     mocker.patch(
         'app.apps.users.use_cases.AuthenticateUserUseCase.execute',
-        return_value=Response(content='Authentication successful')
+        return_value=Response(content='Authentication successful'),
     )
     response = client.post('api/v1/users/login', json=form_data)
     assert response.status_code == 200
